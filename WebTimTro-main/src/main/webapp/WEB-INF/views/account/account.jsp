@@ -14,16 +14,16 @@
 <div class="ui card"
 	style="margin-left: 2%; position: fixed; border-radius: 10%">
 	<div class="ui large image">
-		<img src="resources/images/avatar/${user.username}.png"
+		<img src="resources/images/avatar/${account.username}.png"
 			style="border-radius: 10%" alt="">
 	</div>
 	<div class="content">
-		<a class="header" href="account/${user.username}.htm">${user.username}</a>
+		<a class="header" href="account/${account.username}.htm">${account.username}</a>
 		<div class="meta">
-			<i class="user icon"></i> ${user.hoTen}
+			<i class="user icon"></i> ${account.hoTen}
 		</div>
 		<div class="meta">
-			<i class="calendar icon"></i> Tham gia: ${user.ngayDangKy}
+			<i class="calendar icon"></i> Tham gia: ${account.ngayDangKy}
 		</div>
 	</div>
 </div>

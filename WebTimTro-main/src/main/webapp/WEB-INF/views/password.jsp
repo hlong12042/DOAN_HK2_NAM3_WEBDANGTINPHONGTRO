@@ -1,5 +1,7 @@
 <%@ page pageEncoding="utf-8"%>
+<%@ taglib uri="http://java.sun.com/jstl/core_rt" prefix="c"%>
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="form"%>
+<%@ taglib uri="http://java.sun.com/jstl/fmt_rt" prefix="f"%>
 <!DOCTYPE html>
 <html>
 
@@ -98,7 +100,6 @@ body>.grid {
 							<i class="mail icon"></i>
 							<form:input path="email"
 								type="email" placeholder="Email" />
-
 						</div>
 					</div>
 					<i style="color: red; float: left;"><form:errors
@@ -116,6 +117,20 @@ body>.grid {
 				</div>
 
 			</div>
+			<c:if test="${success!=null}"> 
+				<div class="ui green message"> 
+					<i class="close icon"></i> 
+		  			<div class="header"> Thành Công! </div>
+		  			<p> ${success} </p> 
+				</div> 
+			</c:if>
+			<c:if test="${error!=null}"> 
+	  		<div class="ui red message"> 
+	  			<i class="close icon"></i> 
+	  			<div class="header"> Lỗi! </div>
+	  			<p> ${error} </p> 
+	  		</div> 
+	  	</c:if>
 		</div>
 	</div>
 </body>

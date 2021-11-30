@@ -28,7 +28,7 @@
        	      <prop key="mail.smtp.socketFactory.class">javax.net.ssl.SSLSocketFactory</prop>
 	       	  <prop key="mail.smtp.socketFactory.port">465</prop>
        	      <prop key="mail.smtp.starttls.enable">false</prop>
-       	      <prop key="mail.debug">true</prop>
+       	      <prop key="mail.debug">false</prop>
        </props>
 	</property>	
 </bean>

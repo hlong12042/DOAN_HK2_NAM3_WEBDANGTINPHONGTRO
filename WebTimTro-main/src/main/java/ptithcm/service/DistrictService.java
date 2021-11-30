@@ -9,6 +9,7 @@ import org.hibernate.SessionFactory;
 import ptithcm.entity.District;
 
 public class DistrictService {
+	@SuppressWarnings("unchecked")
 	static public List<District> findByProvince(int id, SessionFactory factory) {
 		Session session = factory.openSession();
 		String hql = "from District d where d.province.id=" + id;

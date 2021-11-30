@@ -1,14 +1,11 @@
 package ptithcm.controller;
 
 import java.math.BigDecimal;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -33,8 +30,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import ptithcm.entity.*;
-
-import ptithcm.service.ProvinceService;
 
 @Transactional
 @Controller
@@ -149,6 +144,7 @@ public class KhachThueController {
 			quicksort(pi+1, high, chedo, session);
 		}
 	}
+	@SuppressWarnings("unchecked")
 	List<Object> getList(String hql) {
 		Session session = factory.getCurrentSession();
 		Query query = session.createQuery(hql);

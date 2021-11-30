@@ -18,6 +18,7 @@ public class KhachThueAuthorizeInterceptor extends HandlerInterceptorAdapter {
 	@Autowired
 	SessionFactory factory;
 	
+	@SuppressWarnings("unused")
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
 			throws Exception {

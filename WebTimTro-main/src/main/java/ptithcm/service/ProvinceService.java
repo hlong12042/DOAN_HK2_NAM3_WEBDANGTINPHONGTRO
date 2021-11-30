@@ -10,6 +10,7 @@ import ptithcm.entity.Province;
 
 public class ProvinceService {
 
+	@SuppressWarnings("unchecked")
 	static public List<Province> findAll(SessionFactory factory) {
 		Session session = factory.openSession();
 		String hql = "from Province";
@@ -19,6 +20,7 @@ public class ProvinceService {
 		return list;
 	}
 
+	@SuppressWarnings("unchecked")
 	static public Province find(int id, SessionFactory factory) {
 		Session session = factory.openSession();
 		String hql = "from Province where id=" + id;

@@ -4,17 +4,13 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.Month;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.HashMap;
 import java.util.List;
-
 
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpSession;
@@ -40,10 +36,8 @@ import ptithcm.entity.Comment;
 import ptithcm.entity.DiaChi;
 import ptithcm.entity.LichHen;
 import ptithcm.entity.NhaTro;
-import ptithcm.entity.Province;
 import ptithcm.entity.ThongBao;
 import ptithcm.entity.Ward;
-import ptithcm.service.ProvinceService;
 
 @Transactional
 @Controller
@@ -65,12 +59,7 @@ public class ChuTroController {
 		return session.getAttribute("provinces");
 	}
 	
-	@ModelAttribute("user")
-	public Account user(HttpSession session) {
-		Session session2 = factory.getCurrentSession();
-		return (Account) session2.get(Account.class, (String) session.getAttribute("username"));
-	}
-	
+	@SuppressWarnings("unchecked")
 	List<Object> getList(String hql) {
 		Session session = factory.getCurrentSession();
 		Query query = session.createQuery(hql);
@@ -79,6 +68,7 @@ public class ChuTroController {
 		return list;
 	}
 	// Đổ thông tin thông báo từ session
+	@SuppressWarnings("unused")
 	@ModelAttribute("thongbaos")
 	public <T> Collection<ThongBao> getThongBao(HttpSession session, ModelMap model) {
 		Session session2 = factory.getCurrentSession();
@@ -571,10 +561,12 @@ public class ChuTroController {
 		Session session2 = factory.getCurrentSession();
 		NhaTro nhatro = (NhaTro) session2.get(NhaTro.class, id);
 		//Kiểm tra nhà trọ
-		if(nhatro.getChuTro()==null||!nhatro.getChuTro().getAccount().getUsername().equals(session.getAttribute("username"))) {
-			re.addFlashAttribute("error", "Bạn không có quyền thực hiện hành động này!");
-			return "redirect:../../index.htm";
-		}
+//		Account account = (Account) session.getAttribute("account");
+//		if(nhatro.getChuTro()==null||account.getChuTro()!=nhatro.getChuTro()) {
+//			re.addFlashAttribute("error", "Bạn không có quyền thực hiện hành động này!");
+//			return "redirect:../../index.htm";
+//		}
+
 		//Kiểm tra mota
 		session2.clear();
 		session2 = factory.openSession();
@@ -839,6 +831,7 @@ public class ChuTroController {
 		}
 		return data;
 	}
+	@SuppressWarnings("finally")
 	@RequestMapping(value="thongkes", params = {"begin","end"}, method=RequestMethod.GET)
 	public String thongke(HttpSession session, ModelMap model,
 			@RequestParam("begin") String begin, @RequestParam("end") String end) {

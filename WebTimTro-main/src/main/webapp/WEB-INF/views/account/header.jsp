@@ -126,13 +126,13 @@ body{
 				<div class="item" onclick="openInfo()">
 						<i class="mail icon"></i>
 				</div>
-				<img src="resources/images/avatar/${sessionScope['username']}.png" style="border-radius: 50%; height: 55px" onclick="openNav()">
+				<img src="resources/images/avatar/${account.username}.png" style="border-radius: 50%; height: 55px" onclick="openNav()">
 			</div>
 		</div>
 	<div class="sidenav" id="sidebar" onmouseleave="closeNav()">
 		<div class="menu">
 			<div class="item">
-			<a href="${pageContext.servletContext.contextPath}/account/${sessionScope['username']}.htm" class="item">
+			<a href="${pageContext.servletContext.contextPath}/account/${account.username}.htm" class="item">
 			<i class="user icon"></i>Thông tin tài khoản</a></div>
 			<div class="item">
 			<a class="item" onclick="$('.large.report.modal').modal('show');"><i class="exclamation triangle icon"></i> Báo lỗi </a></div>
@@ -160,7 +160,7 @@ body{
 					<textarea name="thongbao"></textarea>
 				</div>
 				<div class="field">
-				<input type="hidden" name="username" value="${sessionScope['username']}">
+				<input type="hidden" name="username" value="${account.username}">
 					<button type="submit" class="ui positive right labeled icon button">
 						Gửi
 						<i class="checkmark icon"></i>

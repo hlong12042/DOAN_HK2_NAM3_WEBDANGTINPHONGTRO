@@ -2,8 +2,6 @@ package ptithcm.controller;
 
 
 import java.io.File;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 
 import java.nio.file.Path;
@@ -17,6 +15,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.transaction.Transactional;
+import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
 import org.springframework.mail.javamail.JavaMailSender;
@@ -26,6 +25,7 @@ import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+import org.hibernate.loader.plan.exec.query.spi.QueryBuildingParameters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -38,6 +38,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import ptithcm.Random.Random;
 import ptithcm.entity.*;
 import ptithcm.service.ProvinceService;
 
@@ -52,20 +53,7 @@ public class AccountController {
 	
 	@Autowired
 	ServletContext context;
-
-	List<Object> getList(String hql) {
-		Session session = factory.getCurrentSession();
-		Query query = session.createQuery(hql);
-		List<Object> list = query.list();
-		return list;
-	}
 	
-	public static boolean isContainSpecialWord(String str) {
-		Pattern VALID_INPUT_REGEX = Pattern.compile("[$&+,:;=\\\\\\\\?@#|/'<>.^*()%!-]",
-				Pattern.CASE_INSENSITIVE);
-		Matcher matcher = VALID_INPUT_REGEX.matcher(str);
-		return matcher.find();
-	}
 	@RequestMapping(value = "login", method = RequestMethod.GET)
 	public String login(ModelMap model, HttpSession session) {
 		model.addAttribute("account", new Account());
@@ -77,38 +65,28 @@ public class AccountController {
 
 	@RequestMapping(value = "login", method = RequestMethod.POST)
 	public String login(ModelMap model, 
-			@ModelAttribute("account") Account user, 
+			@ModelAttribute("account") Account user,
 			BindingResult errors,
 			HttpSession httpSession) {
-		user.setUsername(user.getUsername().trim());
-		user.setPassword(user.getPassword().trim());
-		if (user.getUsername().isEmpty()) {
+		if (user.getUsername().isEmpty()) //Username trống
 			errors.rejectValue("username", "account", 
 					"Please enter your username !");
-		} else if (user.getUsername().contains(" ")) {
+		else if (user.getUsername().contains(" ")) //Chứa khoảng tráng
 			errors.rejectValue("username", "account", 
 					"Username must not contain space !");
-		} else if (isContainSpecialWord(user.getUsername())) {
-			errors.rejectValue("username", "account", 
-					"Username must not contain speacial character !");
-		}
-		if (user.getPassword().isEmpty()) {
+		
+		if (user.getPassword().isEmpty()) 
 			errors.rejectValue("password", "account", 
 					"Please enter your password !");
-		} else if (user.getPassword().contains(" ")) {
+		else if (user.getPassword().contains(" ")) 
 			errors.rejectValue("password", "account", 
 					"Password must not contain space !");
-		} else if (isContainSpecialWord(user.getPassword())) {
-			errors.rejectValue("password", "account", 
-					"Password must not contain speacial character !");
-		}
 		if (!errors.hasErrors()) {
-			Session session = factory.getCurrentSession();
+			Session session = factory.getCurrentSession(); //Tạo session để query đến db
 			Account account = (Account) session.get(Account.class, user.getUsername());
-			if (account!=null) {
+			if (account!=null) {//get record account tương ứng với Username (username là khóa chính)
 				if(account.getPassword().equals(user.getPassword())) {
-					httpSession.setAttribute("username", account.getUsername());
-					httpSession.setAttribute("account", account);
+					httpSession.setAttribute("account", account);//Tạo httpSession cho account
 					if (account.getChuTro()!=null) {
 						httpSession.setAttribute("role", 1);
 						return "redirect:/chutro/index.htm";
@@ -145,6 +123,7 @@ public class AccountController {
 		return "register";
 	}
 
+	@SuppressWarnings("unchecked")
 	@RequestMapping(value = "register", method = RequestMethod.POST)
 	public String register(ModelMap model, RedirectAttributes re ,
 			@RequestParam("repassword") String repassword,
@@ -157,45 +136,32 @@ public class AccountController {
 		user.setEmail(user.getEmail());
 		user.setDienThoai(user.getDienThoai().trim());
 		user.setNgayDangKy(new Date());
-		if(request.getParameter("roles").isEmpty()) {
+		if(request.getParameter("roles").isEmpty()) 
 			errors.rejectValue("email", "Please enter your role !");
-		}else {
+		else {
 			Session sessions = factory.getCurrentSession();
 			Role role = (Role) sessions.get(Role.class, 
 					Integer.parseInt(request.getParameter("roles")));
 			user.setRole(role);
 		}
-		if (user.getUsername().isEmpty()) {
+		if (user.getUsername().isEmpty()) 
 			errors.rejectValue("username", "account", 
 					"Please enter your username !");
-		} else if (user.getUsername().contains(" ")) {
+		else if (user.getUsername().contains(" ")) 
 			errors.rejectValue("username", "account", 
 					"Username must not contain space !");
-		} else if (isContainSpecialWord(user.getUsername())) {
-			errors.rejectValue("username", "account", 
-					"Username must not contain speacial character !");
-		}
-		if (user.getPassword().isEmpty()) {
+		if (user.getPassword().isEmpty()) 
 			errors.rejectValue("password", "account", 
 					"Please enter your password !");
-		} else if (user.getPassword().contains(" ")) {
+		else if (user.getPassword().contains(" ")) 
 			errors.rejectValue("password", "account", 
 					"Password must not contain space !");
-		} else if (!user.getPassword().equals(repassword.trim())) {
+		else if (!user.getPassword().equals(repassword.trim())) 
 			errors.rejectValue("password", "account", 
-					"Retype password is not common!");
-		}
-		if (isContainSpecialWord(user.getPassword())) {
-			errors.rejectValue("password", "account", 
-					"Password must not contain speacial character !");
-		}
-		if (user.getHoTen().isEmpty()) {
+					"Retype password is not common!");		
+		if (user.getHoTen().isEmpty()) 
 			errors.rejectValue("hoTen", "account", 
 					"Please enter fullname!");
-		} else if (isContainSpecialWord(user.getHoTen())) {
-			errors.rejectValue("hoTen", "account", 
-					"Fullname must not contain speacial character !");
-		}
 		if (!user.getCmnd().isEmpty()) {
 			Pattern VALID_CMND_REGEX = Pattern.compile("\\d",
 					Pattern.CASE_INSENSITIVE);
@@ -224,8 +190,8 @@ public class AccountController {
 					"Please enter your phone number !");
 		if (!errors.hasErrors()) {
 			Session session = factory.getCurrentSession();
-			String hql = String.format("from Account where username='%s'", user.getUsername());
-			Query query = session.createQuery(hql);
+			Query query = session.createQuery("FROM Account WHERE username=:username");
+			query.setString("username", user.getUsername());
 			List<Account> list = query.list();
 			if (list.isEmpty()) {				
 				Session session2 = factory.openSession();
@@ -279,6 +245,9 @@ public class AccountController {
 		model.addAttribute("account", new Account());
 		return "password";
 	}
+	
+	
+	@SuppressWarnings("unchecked")
 	@RequestMapping(value = "password", method = RequestMethod.POST)
 	public String forgotpassword(ModelMap model, @ModelAttribute("account") Account user, BindingResult errors) {
 		user.setUsername(user.getUsername().trim());
@@ -299,39 +268,54 @@ public class AccountController {
 			errors.rejectValue("email", "account", "Please enter your email !");
 		}
 		
-		if(!errors.hasErrors()) {
-		String hql = String.format("from Account where username = '%s' and email='%s'", user.getUsername(), user.getEmail());
-		List<Object> list = getList(hql);
-		if (list.isEmpty()) {
-			errors.rejectValue("email", "account", "No account have this email!");
-			return "password";
-		} else {
+		if(errors.hasErrors()) return "redirect:password.html";
+		Session session = factory.getCurrentSession();
+		Query query = session.createQuery("FROM Account WHERE username=:username AND email=:email");
+		query.setString("username", user.getUsername()).setString("email", user.getEmail());
+		List<Account> list = (List<Account>) query.list();
+		session.clear();
+		if (list.isEmpty()) 
+			errors.rejectValue("email", "account", "Wrong username or email");
+		else {
+			String password = Random.RandomString(40, Random.character);
+			String body = String.format("<h1>[Quản lí nhà trọ]</h1> "
+					+ "<p>Xin chào [%s],</p> "
+					+ "<p>Mật khẩu của bạn đã được reset</p>"
+					+ "<p>Mật khẩu mới của bạn là:</p>"
+					+ "<div style=\"padding: 2px 16px; background-color: yellow; box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);\">\r\n"
+					+ "	<div class=\"container\">\r\n"
+					+ "		<h2>%s</h2>\r\n"
+					+ "	</div>\r\n"
+					+ "</div>"
+					+ "<p>Hãy đăng nhập lại và đổi lại mật khẩu. "
+					+ "Sau khi đăng nhập hãy xóa mail này để đảm bảo an toàn"
+					+ "</p>", user.getUsername(), password);
+			MimeMessage mail = mailer.createMimeMessage();
+			MimeMessageHelper helper = new MimeMessageHelper(mail);
 			try {
-				String body = "This is your account infomation: \n";
-				for (int i = 0; i < list.size(); i++) {
-					Account u = (Account) list.get(0);
-
-					body += "Username: " + u.getUsername() + "\nEmail: " + u.getEmail() + "\nPassword: "
-							+ u.getPassword() + "\n\n";
-				}
-//				System.out.println(body);
-				// String from = "XGear - PC & Laptop Gaming";
-				MimeMessage mail = mailer.createMimeMessage();
-
-				MimeMessageHelper helper = new MimeMessageHelper(mail);
-				// helper.setFrom(from, from);
+				helper.setFrom("hoanglongmap2468@gmail.com");
 				helper.setTo(user.getEmail());
-				// helper.setReplyTo(from,from);
-				helper.setSubject("Forgot Password");
+				helper.setSubject("QLSV thông báo reset password");
 				helper.setText(body, true);
-
-				mailer.send(mail);
-			} catch (Exception e) {
-				model.addAttribute("message", e);
-			}
-			model.addAttribute("message", "We have sent the password to your email. ");
+				user = list.get(0);
+				user.setPassword(password);
+				session = factory.openSession();
+				Transaction t = session.beginTransaction();
+				try {
+					session.update(user);
+					t.commit();
+					model.addAttribute("success","Password của bạn đã được reset, check mail để lấy password mới");
+				} catch (Exception e) {
+					t.rollback();
+					errors.rejectValue("email", "account", "Password của bạn chưa được reset, hãy báo lại với admin");
+					e.printStackTrace();
+				}
+			} catch (MessagingException e) {
+				model.addAttribute("message", "Không thể mail đến email của bạn!");
+				e.printStackTrace();
+			}			
+			mailer.send(mail);
 		}
-	}
 		return "password";
 	}
 	@RequestMapping(value="account", method=RequestMethod.GET)
@@ -344,38 +328,34 @@ public class AccountController {
 			@RequestParam("hoten") String hoten,
 			@RequestParam("password") String password, 
 			RedirectAttributes re) {
-		hoten=hoten.trim();
-		password=password.trim();
-		if(hoten.isBlank()) {
-			re.addFlashAttribute("error", "Please enter a valid name!");
-		} else if (isContainSpecialWord(hoten)) {
-			re.addFlashAttribute("error", "Fullname must not contain speacial character !");
-		}
-		if(password.isBlank()) {
-			re.addFlashAttribute("error", "Please enter your password!");
-		} else if (isContainSpecialWord(password)) {
-			re.addFlashAttribute("error", "Password must not contain speacial character !");
-		} else {
+		try {	
+			hoten=hoten.trim();
+			password=password.trim();
+			if(hoten.isBlank()) 
+				throw new Exception("Please enter a valid name!");		
+			if(password.isBlank()) 
+				throw new Exception("Please enter your password!");			
 			Session session2 = factory.getCurrentSession();
 			Account account = (Account) session2.get(Account.class, username);
 			session2.clear();
-			if(account.getPassword().equals(password)) {
-				account.setHoTen(hoten);
-				session2 = factory.openSession();
-				Transaction t = session2.beginTransaction();
-				try {
-					session2.update(account);
-					t.commit();
-					re.addAttribute("success", "Thay đổi của bạn đã được thực hiện!");
-				} catch (Exception e) {
-					t.rollback();
-					re.addFlashAttribute("error", "Lỗi!" + e);
-				} finally {
-					session2.clear();
-				}
-			} else {
-				re.addFlashAttribute("error", "Your password is not correct!");
-			}
+			if(!account.getPassword().equals(password))
+				throw new Exception("Wrong password!");
+			account.setHoTen(hoten);
+			session2 = factory.openSession();
+			Transaction t = session2.beginTransaction();
+			try {
+				session2.update(account);
+				t.commit();
+				re.addAttribute("success", "Thay đổi của bạn đã được thực hiện!");
+			} catch (Exception e) {
+				t.rollback();
+				re.addFlashAttribute("error", "Lỗi!");
+				e.printStackTrace();
+			} finally {
+				session2.clear();
+			}	
+		}catch (Exception e) {
+			re.addFlashAttribute("error", e);
 		}
 		return "redirect:../../account.htm";
 	}
@@ -385,45 +365,39 @@ public class AccountController {
 			@RequestParam("password") String password,
 			@RequestParam("repassword") String repassword,
 			RedirectAttributes re) {
-		oldpassword=oldpassword.trim();
-		password=password.trim();
-		repassword=repassword.trim();
-		if(oldpassword.isBlank()) {
-			re.addFlashAttribute("error", "Please enter a valid name!");
-		} else if (isContainSpecialWord(oldpassword)) {
-			re.addFlashAttribute("error", "Fullname must not contain speacial character !");
-		}
-		if(password.isBlank()) {
-			re.addFlashAttribute("error", "Please enter a valid name!");
-		} else if (isContainSpecialWord(oldpassword)) {
-			re.addFlashAttribute("error", "Fullname must not contain speacial character !");
-		}
-		if(!password.equals(repassword)) {
-			re.addFlashAttribute("error", "Retype Password must be commom!");
-		}
-		if(oldpassword.equals(password)) {
-			re.addFlashAttribute("error", "Yor password is the same as the old");
-		}else {
+		try {
+			oldpassword=oldpassword.trim();
+			password=password.trim();
+			repassword=repassword.trim();
+			if(oldpassword.isBlank()) 
+				throw new Exception("Please enter a valid name!");		
+			if(password.isBlank()) 
+				throw new Exception("Please enter a valid name!");
+			if(!password.equals(repassword)) 
+				throw new Exception("Retype Password must be commom!");		
 			Session session2 = factory.getCurrentSession();
 			Account account = (Account) session2.get(Account.class, username);
 			session2.clear();
-			if(account.getPassword().equals(oldpassword)) {
-				account.setPassword(repassword);
-				session2 = factory.openSession();
-				Transaction t = session2.beginTransaction();
-				try {
-					session2.update(account);
-					t.commit();
-					re.addAttribute("sucess", "Thay đổi của bạn đã được thực hiện!");
-				} catch (Exception e) {
-					t.rollback();
-					re.addFlashAttribute("error", "Lỗi!" + e);
-				} finally {
-					session2.clear();
-				}
-			} else {
-				re.addFlashAttribute("error", "Your old password is not correct!");
+			if(!account.getPassword().equals(oldpassword))
+				throw new Exception("Wrong old password!");
+			if(!oldpassword.equals(password)) 
+				throw new Exception("Yor password is the same as the old!");
+			account.setPassword(repassword);
+			session2 = factory.openSession();
+			Transaction t = session2.beginTransaction();
+			try {
+				session2.update(account);
+				t.commit();
+				re.addFlashAttribute("sucess", "Thay đổi của bạn đã được thực hiện!");
+			} catch (Exception e) {
+				t.rollback();
+				re.addFlashAttribute("error", "Lỗi!");
+				e.printStackTrace();
+			} finally {
+				session2.clear();
 			}
+		}catch (Exception e) {
+			re.addFlashAttribute("error", e);
 		}
 		return "redirect:../../account.htm";
 	}
@@ -432,43 +406,39 @@ public class AccountController {
 			@RequestParam("cmnd") String cmnd,
 			@RequestParam("password") String password,
 			RedirectAttributes re) {
-		cmnd=cmnd.trim();
-		password=password.trim();
-		if (!cmnd.isEmpty()) {
-			Pattern VALID_CMND_REGEX = Pattern.compile("\\d",
-					Pattern.CASE_INSENSITIVE);
-			Matcher matcher = VALID_CMND_REGEX.matcher(cmnd);
-			if (!matcher.find()) {
-				re.addFlashAttribute("error", "Please enter a valid cmnd!");
-			}
-		} else {
-			re.addFlashAttribute("error", "Please enter cmnd!");
-		} 
-		if(password.isBlank()) {
-			re.addFlashAttribute("error", "Please enter your password!");
-		} else if (isContainSpecialWord(password)) {
-			re.addFlashAttribute("error", "Password must not contain speacial character !");
-		}else {
+		try {	
+			cmnd=cmnd.trim();
+			password=password.trim();
+			if (!cmnd.isEmpty()) {
+				Pattern VALID_CMND_REGEX = Pattern.compile("\\d",
+						Pattern.CASE_INSENSITIVE);
+				Matcher matcher = VALID_CMND_REGEX.matcher(cmnd);
+				if (!matcher.find()) 
+					throw new Exception ("Please enter a valid cmnd!");	
+			}else throw new Exception ("Plead enter a valid cmnd!");							 
+			if(password.isBlank()) 
+				throw new Exception ("Please enter your password!");
 			Session session2 = factory.getCurrentSession();
 			Account account = (Account) session2.get(Account.class, username);
 			session2.clear();
-			if(account.getPassword().equals(password)) {
-				account.setCmnd(cmnd);
-				session2 = factory.openSession();
-				Transaction t = session2.beginTransaction();
-				try {
-					session2.update(account);
-					t.commit();
-					re.addAttribute("success", "Thay đổi của bạn đã được thực hiện!");
-				} catch (Exception e) {
-					t.rollback();
-					re.addFlashAttribute("error", "Lỗi!" + e);
-				} finally {
-					session2.clear();
-				}
-			} else {
-				re.addFlashAttribute("error", "Your password is not correct!");
+			if(!account.getPassword().equals(password))
+				throw new Exception ("Wrong password!");
+			account.setCmnd(cmnd);
+			session2 = factory.openSession();
+			Transaction t = session2.beginTransaction();
+			try {
+				session2.update(account);
+				t.commit();
+				re.addFlashAttribute("success", "Thay đổi của bạn đã được thực hiện!");
+			} catch (Exception e) {
+				t.rollback();
+				re.addFlashAttribute("error", "Lỗi!");
+				e.printStackTrace();
+			} finally {
+				session2.clear();
 			}
+		}catch (Exception e) {
+			re.addFlashAttribute("error", e);
 		}
 		return "redirect:../../account.htm";
 	}
@@ -477,41 +447,37 @@ public class AccountController {
 			@RequestParam("sdt") String sdt,
 			@RequestParam("password") String password,
 			RedirectAttributes re) {
-		sdt=sdt.trim();
-		password=password.trim();
-		if (!sdt.isEmpty()) {
-			Pattern VALID_PHONE_NUMBER_REGEX = Pattern.compile("(03|05|07|08|09|01[2|6|8|9])"
-					+ "+([0-9]{8})\\\\b", Pattern.CASE_INSENSITIVE);
-			Matcher matcher = VALID_PHONE_NUMBER_REGEX.matcher(sdt);
-			if (!matcher.find()) {
-				re.addFlashAttribute("error", "Please enter a valid phone number!");
-			}
-		} else {
-			re.addFlashAttribute("error", "Please enter phone number!");
-		} 
-		if(password.isBlank()) {
-			re.addFlashAttribute("error", "Please enter your password!");
-		} else if (isContainSpecialWord(password)) {
-			re.addFlashAttribute("error", "Password must not contain speacial character !");
-		}else{
+		try {
+			sdt=sdt.trim();
+			password=password.trim();
+			if (!sdt.isEmpty()) {
+				Pattern VALID_PHONE_NUMBER_REGEX = Pattern.compile("(03|05|07|08|09|01[2|6|8|9])"
+						+ "+([0-9]{8})\\\\b", Pattern.CASE_INSENSITIVE);
+				Matcher matcher = VALID_PHONE_NUMBER_REGEX.matcher(sdt);
+				if (!matcher.find()) 
+					throw new Exception ("Please enter a valid phone number!");			
+			} else  throw new Exception ("Please enter phone number!");		
+			if(password.isBlank()) 
+				throw new Exception ("Please enter your password!");
 			Session session2 = factory.getCurrentSession();
 			Account account = (Account) session2.get(Account.class, username);
 			session2.clear();
-			if(account.getPassword().equals(password)) {
-				account.setDienThoai(sdt);
-				session2 = factory.openSession();
-				Transaction t = session2.beginTransaction();
-				try {
-					session2.update(account);
-					t.commit();
-					re.addAttribute("success", "Thay đổi của bạn đã được thực hiện!");
-				} catch (Exception e) {
-					t.rollback();
-					re.addFlashAttribute("error", "Lỗi!" + e);
-				}
-			} else {
-				re.addFlashAttribute("error", "Your password is not correct!");
+			if(!account.getPassword().equals(password))
+				throw new Exception ("Wrong password");
+			account.setDienThoai(sdt);
+			session2 = factory.openSession();
+			Transaction t = session2.beginTransaction();
+			try {
+				session2.update(account);
+				t.commit();
+				re.addFlashAttribute("success", "Thay đổi của bạn đã được thực hiện!");
+			} catch (Exception e) {
+				t.rollback();
+				re.addFlashAttribute("error", "Lỗi!");
+				e.printStackTrace();
 			}
+		}catch (Exception e) {
+			re.addFlashAttribute("error", e);
 		}
 		return "redirect:../../account.htm";
 	}
@@ -520,50 +486,47 @@ public class AccountController {
 			@RequestParam("email") String email,
 			@RequestParam("password") String password,
 			RedirectAttributes re) {
-		email=email.trim();
-		password=password.trim();
-		if (!email.isEmpty()) {
-			Pattern VALID_EMAIL_REGEX = Pattern.compile("^[A-Z0-9._%+-]+@[A-Z0-9.-]+"
-					+ "\\\\.[A-Z]{2,6}$", Pattern.CASE_INSENSITIVE);
-			Matcher matcher = VALID_EMAIL_REGEX.matcher(email);
-			if (!matcher.find()) {
-				re.addFlashAttribute("error", "Please enter a valid cmnd!");
-			}
-		} else {
-			re.addFlashAttribute("error", "Please enter cmnd!");
-		} 
-		if(password.isBlank()) {
-			re.addFlashAttribute("error", "Please enter your password!");
-		} else if (isContainSpecialWord(password)) {
-			re.addFlashAttribute("error", "Password must not contain speacial character !");
-		} else{
+		try {
+			email=email.trim();
+			password=password.trim();
+			if (!email.isEmpty()) {
+				Pattern VALID_EMAIL_REGEX = Pattern.compile("^[A-Z0-9._%+-]+@[A-Z0-9.-]+"
+						+ "\\\\.[A-Z]{2,6}$", Pattern.CASE_INSENSITIVE);
+				Matcher matcher = VALID_EMAIL_REGEX.matcher(email);
+				if (!matcher.find())
+					throw new Exception ("Please enter a valid cmnd!");				
+			} else throw new Exception ("Please enter cmnd!");
+			if(password.isBlank()) 
+				throw new Exception ("Please enter your password!");
 			Session session2 = factory.getCurrentSession();
 			Account account = (Account) session2.get(Account.class, username);
 			session2.clear();
-			if(account.getPassword().equals(password)) {
-				account.setEmail(email);
-				session2 = factory.openSession();
-				Transaction t = session2.beginTransaction();
-				try {
-					session2.update(account);
-					t.commit();
-					re.addAttribute("success", "Thay đổi của bạn đã được thực hiện!");
-				} catch (Exception e) {
-					t.rollback();
-					re.addFlashAttribute("error", "Lỗi!" + e);
-				} finally {
-					session2.clear();
-				}
-			} else {
-				re.addFlashAttribute("error", "Your password is not correct!");
+			if(!account.getPassword().equals(password))
+				throw new Exception ("Wrong password");
+			account.setEmail(email);
+			session2 = factory.openSession();
+			Transaction t = session2.beginTransaction();
+			try {
+				session2.update(account);
+				t.commit();
+				re.addFlashAttribute("success", "Thay đổi của bạn đã được thực hiện!");
+			} catch (Exception e) {
+				t.rollback();
+				re.addFlashAttribute("error", "Lỗi!" + e);
+			} finally {
+				session2.clear();
 			}
+		}catch(Exception e) {
+			re.addFlashAttribute("error", e);
 		}
 		return "redirect:../../account.htm";
 	}
 	@RequestMapping(value="account/doirole/{username}", method=RequestMethod.POST)
 	public String doiemail(@PathVariable("username") String username,
 			RedirectAttributes re, HttpSession session) {
-		if(session.getAttribute("role").equals("3")) {
+		try {
+			if(session.getAttribute("role").equals("3")) 
+				throw new Exception ("Bạn không có quyền thực hiện hành động này!");
 			Session session2 = factory.getCurrentSession();
 			Account account = (Account) session2.get(Account.class, username);
 			session2.clear();
@@ -574,15 +537,15 @@ public class AccountController {
 			try {
 				session2.update(account);
 				t.commit();
-				re.addAttribute("success", "Thay đổi của bạn đã được thực hiện!");
+				re.addFlashAttribute("success", "Thay đổi của bạn đã được thực hiện!");
 			} catch (Exception e) {
 				t.rollback();
 				re.addFlashAttribute("error", "Lỗi!" + e);
 			} finally {
 				session2.clear();
 			}
-		}else {
-			re.addFlashAttribute("error", "Bạn không có quyền thực hiện hành động này");
+		}catch (Exception e) {
+			re.addFlashAttribute("error", e);
 		}
 		return "redirect:../../account.htm";
 	}
@@ -590,41 +553,41 @@ public class AccountController {
 	public String doiavata(@PathVariable("username") String username, 
 			RedirectAttributes re, HttpSession session,
 			@RequestParam("avata") MultipartFile avata, @RequestParam("password") String password) {
-		if(!avata.isEmpty()) {
-			if (!(avata.getContentType().contains("jpeg") || avata.getContentType().contains("png"))) {
-				re.addFlashAttribute("error", "File ảnh không đúng định dạng !");
-				return "redirect:../" + username  + ".htm";
-			}
-			Account account = (Account) session.getAttribute("account");
-			if(!account.getPassword().equals(password)) {
-				re.addFlashAttribute("error", "Mật khẩu không đúng !");
-				return "redirect:../" + username  + ".htm";
-			}
-			try {
+		try {
+			if(!avata.isEmpty()) {
+				if (!(avata.getContentType().contains("jpeg") || avata.getContentType().contains("png"))) {
+					re.addFlashAttribute("error", "File ảnh không đúng định dạng !");
+					return "redirect:../" + username  + ".htm";
+				}
+				Account account = (Account) session.getAttribute("account");
+				if(!account.getPassword().equals(password)) {
+					re.addFlashAttribute("error", "Mật khẩu không đúng !");
+					return "redirect:../" + username  + ".htm";
+				}
 				String avataPath=context.getRealPath("/resources/images/avatar/"+ username+".png");
 				File temp = new File(avataPath); temp.delete();
 				avata.transferTo(new File(avataPath));
 				re.addFlashAttribute("success", "Thay đổi của bạn đã được thực hiện!");
-			}catch(Exception e) {
-				re.addFlashAttribute("error", "Lỗi!" + e);
 			}
+		}catch (Exception e) {
+			re.addFlashAttribute("error", e);
 		}
 		return "redirect:../../account.htm";
 	}
+	@SuppressWarnings("unchecked")
 	@RequestMapping(value="report", method = RequestMethod.POST)
 	public String report(HttpSession session, RedirectAttributes re,
 			@RequestParam("username") String username,
 			@RequestParam("thongbao") String thongbao) {
 		Session session2 = factory.getCurrentSession();
 		Account account = (Account) session2.get(Account.class, username);
-		String hql = "FROM Account WHERE role.id = 3";
-		List <Object> list = getList(hql);
+		Query query = session2.createQuery("FROM Account WHERE role.id = 3");
+		List<Account> list = (List<Account>) query.list();
 		session2.clear();
 		session2 = factory.openSession();
 		Transaction t = session2.beginTransaction();
 		try {
-			for (Object o:list) {
-				Account admin = (Account) o;
+			for (Account admin:list) {
 				thongbao = account.getUsername() + " báo lỗi: " + thongbao;
 				ThongBao tb = new ThongBao();
 				tb.setAccount(admin);

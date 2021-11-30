@@ -13,16 +13,16 @@
 	<!-- Page Contents -->
 	<div class="ui card" style="margin-left: 2%; position: fixed; background-color: white;">
 			<div class="ui large image">
-				<img src="resources/images/avatar/${sessionScope['username']}.png" style="border-radius: 5%" alt="">
+				<img src="resources/images/avatar/${account.username}.png" style="border-radius: 5%" alt="">
 			</div>
 			<div class="content">
-				<a class="header" href="chutro/index.htm">${user.username}</a>
+				<a class="header" href="chutro/index.htm">${account.username}</a>
 				<div class="meta">
 				<i class="user icon"></i>
-				${user.hoTen}</div>
+				${account.hoTen}</div>
 				<div class="meta">
 				<i class="calendar alternate outline icon"></i>
-				Tham gia: ${user.ngayDangKy}</div>
+				Tham gia: ${account.ngayDangKy}</div>
 			</div>
 		</div>
 		<div class="ui grid" style="padding-left:20%; max-width: 150%; margin-top: 17px; border-radius: 5px" id="container">

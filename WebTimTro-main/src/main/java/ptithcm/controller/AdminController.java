@@ -905,6 +905,7 @@ public class AdminController {
 		model.addAttribute("provinces", session.getAttribute("provinces"));
 		return "admin/truong";
 	}
+	@SuppressWarnings("finally")
 	@RequestMapping(value="truong/themtruong", method = RequestMethod.POST)
 	public String themtruong(RedirectAttributes re, 
 			@RequestParam("ten") String ten, @RequestParam("idprovince") int idprovince) {
@@ -944,6 +945,7 @@ public class AdminController {
 			return "redirect:../truong.htm";
 		}
 	}
+	@SuppressWarnings("finally")
 	@RequestMapping(value="truong/chinhsuatruong", method = RequestMethod.POST)
 	public String chinhsuatruong(RedirectAttributes re, @RequestParam("idtruong") int idtruong, 
 			@RequestParam("ten") String ten, @RequestParam("idprovince") int idprovince) {

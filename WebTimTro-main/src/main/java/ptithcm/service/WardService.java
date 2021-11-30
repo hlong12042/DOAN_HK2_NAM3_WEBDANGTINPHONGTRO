@@ -10,6 +10,7 @@ import ptithcm.entity.Ward;
 
 public class WardService {
 
+	@SuppressWarnings("unchecked")
 	static public List<Ward> findByDistrict(int id, SessionFactory factory) {
 		Session session = factory.openSession();
 		String hql = "from Ward w where w.district.id=" + id;

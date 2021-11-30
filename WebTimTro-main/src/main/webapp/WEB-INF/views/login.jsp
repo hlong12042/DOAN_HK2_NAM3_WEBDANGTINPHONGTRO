@@ -1,5 +1,7 @@
 <%@ page pageEncoding="utf-8"%>
+<%@ taglib uri="http://java.sun.com/jstl/core_rt" prefix="c"%>
 <%@ taglib uri="http://www.springframework.org/tags/form" prefix="form"%>
+<%@ taglib uri="http://java.sun.com/jstl/fmt_rt" prefix="f"%>
 <!DOCTYPE html>
 <html>
 <head>
@@ -57,9 +59,8 @@ body>.grid {
 							path="password"></form:errors></i>
 						<div class="ui left icon input">
 							<i class="lock icon"></i>
-							<form:input path="password" value="${user.password}"
+							<form:input path="password"
 								type="password" placeholder="Mật khẩu" />
-
 						</div>
 					</div>
 					<button class="ui fluid large teal submit button">Đăng
@@ -74,7 +75,20 @@ body>.grid {
 					Chưa có tài khoản? <a href="register.htm"> Đăng ký!</a>
 				</div>
 			</div>
-			<div>${message}</div>
+			<c:if test="${thongbao!=null}"> 
+				<div class="ui green message"> 
+					<i class="close icon"></i> 
+		  			<div class="header"> Thành Công! </div>
+		  			<p> ${success} </p> 
+				</div> 
+			</c:if>
+			<c:if test="${error!=null}"> 
+	  		<div class="ui red message"> 
+	  			<i class="close icon"></i> 
+	  			<div class="header"> Lỗi! </div>
+	  			<p> ${error} </p> 
+	  		</div> 
+	  	</c:if>
 		</div>
 	</div>
 </body>

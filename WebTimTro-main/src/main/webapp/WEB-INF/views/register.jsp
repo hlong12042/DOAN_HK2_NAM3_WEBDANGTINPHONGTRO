@@ -1,6 +1,7 @@
 <%@ page pageEncoding="UTF-8"%>
-<%@ taglib uri="http://www.springframework.org/tags/form" prefix="form"%>
 <%@ taglib uri="http://java.sun.com/jstl/core_rt" prefix="c"%>
+<%@ taglib uri="http://www.springframework.org/tags/form" prefix="form"%>
+<%@ taglib uri="http://java.sun.com/jstl/fmt_rt" prefix="f"%>
 <!DOCTYPE html>
 <html>
 
@@ -119,6 +120,20 @@ body>.grid {
 					Đã có tài khoản? <a href="login.htm"> Đăng nhập</a>
 				</div>
 			</div>
+			<c:if test="${success!=null}"> 
+				<div class="ui green message"> 
+					<i class="close icon"></i> 
+		  			<div class="header"> Thành Công! </div>
+		  			<p> ${success} </p> 
+				</div> 
+			</c:if>
+			<c:if test="${error!=null}"> 
+	  		<div class="ui red message"> 
+	  			<i class="close icon"></i> 
+	  			<div class="header"> Lỗi! </div>
+	  			<p> ${error} </p> 
+	  		</div> 
+	  	</c:if>
 		</div>
 	</div>
 </body>

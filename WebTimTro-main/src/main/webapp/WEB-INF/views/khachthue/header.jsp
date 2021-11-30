@@ -178,7 +178,7 @@
 				<div class="item" onclick="openInfo()">
 						<i class="mail icon"></i>
 				</div>
-				<img src="resources/images/avatar/${sessionScope['username']}.png" style="border-radius: 50%; height: 55px" onclick="openNav()">
+				<img src="resources/images/avatar/${account.username}.png" style="border-radius: 50%; height: 55px" onclick="openNav()">
 			</div>
 		</div>
 	<div class="sidenav" id="sidebar" onmouseleave="closeNav()">
@@ -218,7 +218,7 @@
 					<textarea name="thongbao"></textarea>
 				</div>
 				<div class="field">
-				<input type="hidden" name="username" value="${sessionScope['username']}">
+				<input type="hidden" name="username" value="${account.username}">
 					<button type="submit" class="ui positive right labeled icon button">
 						Gửi
 						<i class="checkmark icon"></i>

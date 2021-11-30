@@ -99,6 +99,7 @@ public class HomeController {
 		return "redirect:index.htm";
 	}
 	
+	@SuppressWarnings("unchecked")
 	@ModelAttribute("provinces")
 	public List<Province> getProvinces(HttpSession session){
 		if (session.getAttribute("provinces")==null) {
@@ -107,6 +108,7 @@ public class HomeController {
 		return (List<Province>) session.getAttribute("provinces");
 	}
 		
+	@SuppressWarnings("unchecked")
 	List<Object> getList(String hql) {
 		Session session = factory.getCurrentSession();
 		Query query = session.createQuery(hql);
